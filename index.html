@@ -219,13 +219,14 @@ createApp({
             document.cookie = key + "=" + encodeURIComponent(JSON.stringify(value)) + "; expires=" + expires + "; path=/";
         }
         function getCookie(key) {
-            const m = document.cookie.match("(^|;)\\s*" + key + "\\s*=\\s*([^;]+)");
-            if (!m) return null;
-            try {
-                return JSON.parse(decodeURIComponent(m[2]));
-            } catch {
-                return null;
+            const cookies = document.cookie.split(";");
+
+            for (let cookie of cookies) {
+                const [k, v] = cookie.trim().split("=");
+                if (k === key) return JSON.parse(decodeURIComponent(m[2]));
             }
+
+            return null;
         }
 
         // -----------------------------
