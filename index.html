@@ -220,6 +220,7 @@ createApp({
         }
         function getCookie(key) {
             const m = document.cookie.match("(^|;)\\s*" + key + "\\s*=\\s*([^;]+)");
+            console.log(m);
             if (!m) return null;
             try {
                 return JSON.parse(decodeURIComponent(m[2]));
@@ -288,6 +289,7 @@ createApp({
             const data = {
                 clue: state.clue,
                 numGuesses: state.numGuesses,
+                listGuesses: state.listGuesses,
                 message: state.message,
                 gameOver: state.gameOver,
             };
