@@ -222,7 +222,7 @@ createApp({
             const m = document.cookie.match("(^|;)\\s*" + key + "\\s*=\\s*([^;]+)");
             if (!m) return null;
             try {
-                return JSON.parse((m[2]));
+                return JSON.parse(decodeURIComponent(m[2]));
             } catch {
                 return null;
             }
