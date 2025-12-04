@@ -182,7 +182,8 @@
         :disabled="state.gameOver"
     />
 
-    <button @click="submitGuess" :disabled="state.gameOver">Guess</button>
+    <button @click="submitGuess" v-if="!state.gameOver">Guess</button>
+    <button @click="restartGame" v-else>Replay</button>
 
     <p><i v-html="state.message"></i></p>
 
@@ -278,7 +279,6 @@ createApp({
             state.clue = saved.clue;
             state.numGuesses = saved.numGuesses;
             state.listGuesses = saved.listGuesses;
-            state.message = saved.message;
             state.gameOver = saved.gameOver;
         }
 
@@ -290,7 +290,6 @@ createApp({
                 clue: state.clue,
                 numGuesses: state.numGuesses,
                 listGuesses: state.listGuesses,
-                message: state.message,
                 gameOver: state.gameOver,
             };
             setCookie(cookieKey, data);
@@ -380,6 +379,18 @@ createApp({
             console.log("Updated clue =", state.clue);
         }
 
+        function restartGame() {
+            state.clue = ["_", "_", "_", "_"];
+            state.numGuesses = 1;
+            state.listGuesses = [];
+            state.gameOver = false;
+
+            state.message = "";
+            state.guessInput = "";
+            saveState();
+            console.log("Restart game");
+        }
+
         // -----------------------------
         // STYLING
         // -----------------------------
@@ -396,6 +407,7 @@ createApp({
             NIMI_LEN,
             MAX_GUESSES,
             submitGuess,
+            restartGame,
             calculateClue,
             clueClass
         };
