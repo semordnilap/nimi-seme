@@ -224,7 +224,7 @@ createApp({
 
             for (let cookie of cookies) {
                 const [k, v] = cookie.trim().split("=");
-                if (k === key) return JSON.parse(decodeURIComponent(v[2]));
+                if (k === key) return JSON.parse(decodeURIComponent(v));
             }
 
             return null;
