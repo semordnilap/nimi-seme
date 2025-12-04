@@ -389,6 +389,10 @@ createApp({
             state.guessInput = "";
             saveState();
             console.log("Restart game");
+
+            var input = document.getElementById("mainInput");
+            input.focus();
+            input.select();
         }
 
         // -----------------------------
