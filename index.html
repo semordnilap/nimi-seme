@@ -2,18 +2,34 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+
+<!-- Mobile + desktop responsive layout -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
 <title>nimi seme: wordle in toki pona</title>
+
+<!-- Favicon -->
 <link rel="icon" type="image/png" href="icon64.png" />
+
+<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+
+<!-- Vue -->
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+<!-- Analytics (GoatCounter) -->
 <script data-goatcounter="https://nimi-seme.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<!-- Custom font for sitelen pona -->
 <style>
     @font-face {
         font-family: 'sitelen linja tan jan Nopu';
-        src: url('sitelen-linja.ttf')
+        src: url('sitelen-linja.ttf');
     }
+
+    /* ---------- General Styling ---------- */
 
     body {
         font-family: Lexend, Roboto, Arial, sans-serif;
@@ -26,17 +42,19 @@
         text-decoration: underline dotted;
     }
 
-    .row {
-        display: flex;        /* <-- makes boxes align horizontally */
-        flex-direction: row;
-    }
-
     .container {
         width: 100%;
         display: flex;
         justify-content: center;
         margin-top: 40px;
     }
+
+    .row {
+        display: flex;
+        flex-direction: row;
+    }
+
+    /* ---------- Word Boxes ---------- */
 
     .box {
         background-color: white;
@@ -45,14 +63,14 @@
         padding: 10px;
         margin: 0 10px 10px 0;
         font-size: 125%;
-        display: flex;         /* centers text */
+        display: flex;
         align-items: center;
         justify-content: center;
-        width: 40px;           /* optional: square look */
+        width: 40px;
         height: 40px;
     }
 
-
+    /* Wordle-style colors */
     .box.correct {
         background-color: #6aaa64; /* green */
         color: white;
@@ -75,6 +93,7 @@
         background-color: white;
     }
 
+    /* sitelen pona glyphs */
     .tp {
         font-family: 'sitelen linja tan jan Nopu', monospace;
     }
@@ -87,6 +106,7 @@
         transform-origin: center;
     }
 
+    /* Wiggle animation (used on win row) */
     @keyframes wiggle {
         0%   { transform: rotate(0deg); }
         10%  { transform: rotate(20deg); }
@@ -100,17 +120,10 @@
     }
 
     .wiggle {
-        animation-name: wiggle;
-        animation-duration: 900ms;
-        animation-iteration-count: infinite;
-        animation-timing-function: ease-in-out;
+        animation: wiggle 900ms infinite ease-in-out;
     }
 
-    .signature {
-        font-size: 85%;
-        margin-top: 80px;
-        opacity: 20%;
-    }
+    /* ---------- Input & Buttons ---------- */
 
     input {
         width: 255px;
@@ -125,8 +138,8 @@
     }
 
     input:focus {
-        border: #6148c4 3px solid;
         outline: none;
+        border-color: #6148c4;
     }
 
     button {
@@ -140,41 +153,63 @@
         color: white;
         font-family: inherit;
         font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+    /* ---------- Footer ---------- */
+
+    .signature {
+        font-size: 85%;
+        opacity: 20%;
+    }
+
+    .links {
+        color: #6148c4;
     }
 </style>
 </head>
 
 <body>
 <div id="app">
-    <h1>nimi seme: wordle in toki pona</h1>
+    <h1>nimi seme: the toki pona wordle</h1>
 
+    <!-- WORD GRID -->
     <div class="container">
         <div class="boxes">
+
             <div class="row" v-for="(guess, i) in MAX_GUESSES" :key="i">
 
-                <!-- If this guess exists, show colored boxes -->
+                <!-- Existing guess -->
                 <template v-if="state.listGuesses[i]">
                     <div class="box"
-                        v-for="([index, clue]) in calculateClue(state.listGuesses[i]).entries()"
-                        :key="index"
-                        :class="clueClass(clue)">
+                         v-for="([index, clue]) in calculateClue(state.listGuesses[i]).entries()"
+                         :key="index"
+                         :class="clueClass(clue)">
                         {{ state.listGuesses[i][index].toUpperCase() }}
                     </div>
-                    <div class="tp tpVis" :class="{'wiggle': state.listGuesses[i] === state.nimini}">{{ state.listGuesses[i] }}</div>
+
+                    <!-- sitelen pona display -->
+                    <div class="tp tpVis"
+                         :class="{'wiggle': state.listGuesses[i] === state.nimini}">
+                        {{ state.listGuesses[i] }}
+                    </div>
                 </template>
 
-                <!-- Otherwise, empty boxes -->
+                <!-- Empty row -->
                 <template v-else>
-                    <div class="box empty"
-                        v-for="j in NIMI_LEN"
-                        :key="j">
+                    <div class="box empty" 
+                         v-for="j in NIMI_LEN"
+                         :key="j">
                     </div>
                     <div class="tpVis"></div>
                 </template>
+
             </div>
+
         </div>
     </div>
 
+    <!-- INPUT -->
     <input 
         id="mainInput"
         v-model="state.guessInput"
@@ -184,68 +219,184 @@
         :disabled="state.gameOver"
     />
 
+    <!-- BUTTONS -->
     <button @click="submitGuess" v-if="!state.gameOver">Guess</button>
     <button @click="restartGame" v-else>Replay</button>
 
+    <!-- MESSAGE -->
     <p><i v-html="state.message"></i></p>
 
-    <p class="signature">With <span class="tp">olin</span> from <span class="tp">jan[pilin en tawa ale]</span></p>
-
-    <!--<p style="margin-top:2rem;color:#777;">
-        <strong>Debug:</strong><br>
-        Target word: {{ state.nimini }}<br>
-        Guess #: {{ state.numGuesses }}/{{ MAX_GUESSES }}<br>
-        Guesses: {{ state.listGuesses }}<br>
-        Seed: {{ state.seed }}<br>
-        Cookie key: {{ state.cookieKey }}
-    </p>-->
+    <!-- FOOTER -->
+    <p class="signature" style="margin-top: 80px;">
+        With <span class="tp">olin</span> from <span class="tp">jan[pilin en tawa ale]</span>
+    </p>
+    <hr style="width: 250px; opacity: 20%;" />
+    <div class="signature links">
+        <a href="https://github.com/semordnilap/nimi-seme/issues" target="_blank">Report a bug / Suggest a feature</a>
+    </div>
 </div>
 
 <script>
+// -------- Confetti Engine (from CodePen https://codepen.io/Vignesh46/pen/KwdoONm, cleaned up for embedding) --------
+
+class ConfettiParticle {
+    constructor(parent) {
+        this.parent = parent;
+        this.reset();
+    }
+
+    reset() {
+        this.color = this.parent.colors[Math.floor(Math.random() * this.parent.colors.length)];
+        this.size = Math.random() * 8 + 4;
+        this.x = Math.random() * this.parent.width;
+        this.y = Math.random() * -this.parent.height;
+        this.vy = Math.random() * 3 + 2;
+        this.vx = Math.random() * 2 - 1;
+        this.opacity = Math.random() * 0.5 + 0.5;
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.y > this.parent.height) this.reset();
+    }
+
+    draw() {
+        const ctx = this.parent.ctx;
+        ctx.beginPath();
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+    }
+}
+
+class Confetti {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext("2d");
+        this.colors = ["#6AAA64", "#C9B458", "#787C7E", "#6148c4", "#dfd9f9"];
+
+        this.resize();
+        window.addEventListener("resize", () => this.resize());
+
+        this.particles = [];
+        for (let i = 0; i < 200; i++) {
+            this.particles.push(new ConfettiParticle(this));
+        }
+
+        this.running = false;
+    }
+
+    resize() {
+        this.width = this.canvas.width = window.innerWidth;
+        this.height = this.canvas.height = window.innerHeight;
+    }
+
+    start() {
+        if (this.running) return;
+        this.running = true;
+        this.animate();
+    }
+
+    stop() {
+        this.running = false;
+    }
+
+    animate() {
+        if (!this.running) {
+            this.ctx.clearRect(0, 0, this.width, this.height);
+            return;
+        }
+
+        this.ctx.clearRect(0, 0, this.width, this.height);
+        for (let p of this.particles) {
+            p.update();
+            p.draw();
+        }
+        requestAnimationFrame(() => this.animate());
+    }
+}
+
+// Create a confetti engine ready to fire
+let confetti = null;
+window.addEventListener("DOMContentLoaded", () => {
+    confetti = new Confetti("confetti-canvas");
+});
+</script>
+
+<script>
+/* ================================
+   nimi seme: implementation in Vue.js
+   ================================ */
+
 const { createApp, reactive } = Vue;
 
 createApp({
     setup() {
-        // -----------------------------
-        // GAME CONSTANTS
-        // -----------------------------
-        const NIMI_LEN = 4;
-        const NIMI_ALE = ["anpa", "ante", "awen", "esun", "insa", "jaki", "jelo", "kala", "kama", "kasi", "kili", "kule", "kute", "lape", "laso", "lawa", "leko", "lete", "lili", "lipu", "loje", "luka", "lupa", "mama", "mani", "meli", "meso", "mije", "moku", "moli", "musi", "mute", "nasa", "nena", "nimi", "noka", "olin", "open", "pali", "pana", "pini", "pipi", "poka", "poki", "pona", "sama", "seli", "selo", "seme", "sewi", "sike", "sina", "soko", "sona", "suli", "suno", "supa", "suwi", "taso", "tawa", "telo", "toki", "tomo", "unpa", "walo", "waso", "wawa", "weka", "wile"];
-        const MAX_GUESSES = 4;
-        const WIN_RESPONSES = ["nasa a", "pona mute a", "pona a", "poka mute a", "ike a"];
 
-        // -----------------------------
-        // UTILS: COOKIES
-        // -----------------------------
+        /* ---------------------------------------
+           CONSTANTS
+        --------------------------------------- */
+        const NIMI_LEN = 4;
+        const MAX_GUESSES = 4;
+
+        // Linku popularity > 30%
+        const NIMI_ALE = [
+            "anpa", "ante", "awen", "esun", "insa", "jaki", "jelo", "kala", "kama", "kasi", "kili", "kule",
+            "kute", "lape", "laso", "lawa", "leko", "lete", "lili", "lipu", "loje", "luka", "lupa", "mama",
+            "mani", "meli", "meso", "mije", "moku", "moli", "musi", "mute", "nasa", "nena", "nimi", "noka",
+            "olin", "open", "pali", "pana", "pini", "pipi", "poka", "poki", "pona", "sama", "seli", "selo",
+            "seme", "sewi", "sike", "sina", "soko", "sona", "suli", "suno", "supa", "suwi", "taso", "tawa",
+            "telo", "toki", "tomo", "unpa", "walo", "waso", "wawa", "weka", "wile"
+        ];
+
+        const WIN_RESPONSES = [
+            "nasa a",
+            "pona mute a",
+            "pona a",
+            "poka mute a",
+            "ike a"
+        ];
+
+        /* ---------------------------------------
+           COOKIE HELPERS
+        --------------------------------------- */
+
+        // Save cookie for a number of hours
         function setCookie(key, value, hours = 6) {
             const expires = new Date(Date.now() + hours * 3600000).toUTCString();
-            document.cookie = key + "=" + encodeURIComponent(JSON.stringify(value)) + "; expires=" + expires + "; path=/";
+            document.cookie =
+                key + "=" + encodeURIComponent(JSON.stringify(value)) +
+                "; expires=" + expires +
+                "; path=/";
         }
+
+        // Read cookie safely
         function getCookie(key) {
             const cookies = document.cookie.split(";");
-
             for (let cookie of cookies) {
                 const [k, v] = cookie.trim().split("=");
                 if (k === key) return JSON.parse(decodeURIComponent(v));
             }
-
             return null;
         }
 
-        // -----------------------------
-        // DAILY SEED & WORD
-        // -----------------------------
-        function getTodaySeed() {
+        /* ---------------------------------------
+           DAILY WORD GENERATOR (OLD)
+        --------------------------------------- */
+
+        /*function getTodaySeed() {
             const d = new Date();
-            return parseInt(
+            return Number(
                 d.getFullYear().toString() +
-                (d.getMonth() + 1).toString().padStart(2,"0") +
-                d.getDate().toString().padStart(2,"0")
+                String(d.getMonth() + 1).padStart(2, "0") +
+                String(d.getDate()).padStart(2, "0")
             );
         }
 
         function seededRandom(seed) {
-            let x = Math.sin(seed) * 10000;
+            const x = Math.sin(seed) * 10000;
             return x - Math.floor(x);
         }
 
@@ -253,13 +404,61 @@ createApp({
         const nimini = NIMI_ALE[Math.floor(seededRandom(seed) * NIMI_ALE.length)];
         const cookieKey = "nimi-seme-" + seed;
 
-        console.log("Today's seed =", seed);
-        console.log("Target word =", nimini);
-        console.log("Cookie key =", cookieKey);
+        console.log("Today's seed:", seed);
+        console.log("Today's word:", nimini);*/
 
-        // -----------------------------
-        // REACTIVE STATE
-        // -----------------------------
+        /* ---------------------------------------
+        DAILY WORD GENERATOR (MONTHLY-SHUFFLED)
+        --------------------------------------- */
+
+        // Day of month: 1-31 .. convert to 0-30 index
+        function getDayOfMonthIndex() {
+            return new Date().getDate() - 1;
+        }
+
+        // Deterministic seeded RNG (LCG)
+        function seededRNG(seed) {
+            return function () {
+                seed = (seed * 1664525 + 1013904223) % 4294967296;
+                return seed / 4294967296;
+            };
+        }
+
+        // Fisher–Yates shuffle using seeded RNG
+        function seededShuffle(array, seed) {
+            const rng = seededRNG(seed);
+            const arr = array.slice(); // copy
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(rng() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Monthly seed: YYYYMM (e.g., 202502 for Feb 2025)
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1; // 1-12
+        const monthlySeed = year * 100 + month;
+
+        // Shuffle word list uniquely for this month
+        const SHUFFLED_WORDS = seededShuffle(NIMI_ALE, monthlySeed);
+
+        // Pick today's word: index = day_in_month % list_length
+        const dayIndex = getDayOfMonthIndex() % SHUFFLED_WORDS.length;
+        const nimini = SHUFFLED_WORDS[dayIndex];
+
+        // Cookie key includes year + month + day
+        const cookieKey = `nimi-seme-${year}-${month}-${dayIndex}`;
+
+        console.log("Monthly seed =", monthlySeed);
+        console.log("Day index =", dayIndex);
+        console.log("Today's word =", nimini);
+
+        /* ---------------------------------------
+           REACTIVE STATE
+        --------------------------------------- */
+
         const state = reactive({
             guessInput: "",
             numGuesses: 1,
@@ -268,59 +467,58 @@ createApp({
             clue: ["_", "_", "_", "_"],
             message: "",
             gameOver: false,
-            seed,
-            cookieKey,
+            cookieKey
         });
 
-        // -----------------------------
-        // LOAD SAVED COOKIE STATE
-        // -----------------------------
+        /* ---------------------------------------
+           LOAD SAVED STATE
+        --------------------------------------- */
+
         const saved = getCookie(cookieKey);
         if (saved) {
-            console.log("Loaded cookie state = ", saved);
             state.clue = saved.clue;
             state.numGuesses = saved.numGuesses;
             state.listGuesses = saved.listGuesses;
             state.gameOver = saved.gameOver;
         }
 
-        // -----------------------------
-        // SAVE STATE TO COOKIE
-        // -----------------------------
+        /* ---------------------------------------
+           SAVE STATE
+        --------------------------------------- */
+
         function saveState() {
             const data = {
                 clue: state.clue,
                 numGuesses: state.numGuesses,
                 listGuesses: state.listGuesses,
-                gameOver: state.gameOver,
+                gameOver: state.gameOver
             };
             setCookie(cookieKey, data);
-            console.log("Saved cookie state = ", data);
         }
 
-        // -----------------------------
-        // GAME LOGIC
-        // -----------------------------
+        /* ---------------------------------------
+           WORDLE CLUE CALCULATION
+        --------------------------------------- */
+
         function calculateClue(nimi) {
-            // Compute clue
-            const clue = ["_", "_", "_", "_"];
+            const clue = Array(NIMI_LEN).fill("_");
             const targetCount = {};
 
+            // Count letters in target
             for (const c of state.nimini)
                 targetCount[c] = (targetCount[c] || 0) + 1;
 
-            // First pass (#)
-            for (let i = 0; i < 4; i++) {
+            // First pass: exact matches "#"
+            for (let i = 0; i < NIMI_LEN; i++) {
                 if (nimi[i] === state.nimini[i]) {
                     clue[i] = "#";
                     targetCount[nimi[i]]--;
                 }
             }
 
-            // Second pass (? or x)
-            for (let i = 0; i < 4; i++) {
+            // Second pass: misplaced "?" or absent "x"
+            for (let i = 0; i < NIMI_LEN; i++) {
                 if (clue[i] !== "_") continue;
-
                 const letter = nimi[i];
                 if (targetCount[letter] > 0) {
                     clue[i] = "?";
@@ -330,100 +528,133 @@ createApp({
                 }
             }
 
-            return clue
+            return clue;
         }
+
+        /* ---------------------------------------
+           MAIN GAME LOGIC
+        --------------------------------------- */
 
         function submitGuess() {
             if (state.gameOver) return;
 
             const nimitenponi = state.guessInput.toLowerCase();
-            console.log("Submitted guess =", nimitenponi);
+            console.log("Guess:", nimitenponi);
 
-            if (nimitenponi.length !== 4 || !NIMI_ALE.includes(nimitenponi)) {
-                state.message = "nimi sina <span class='underline' title='Words listed at linku.la as having usage > 30%.'>lon toki pona</span> o jo e sitelen tu tu.";
+            // Invalid guess
+            if (nimitenponi.length !== NIMI_LEN ||
+                !NIMI_ALE.includes(nimitenponi)) {
+
+                state.message =
+                    "nimi sina <span class='underline' title='Words listed at linku.la as having usage > 30%.'>lon toki pona</span> o jo e sitelen tu tu.";
+
                 state.guessInput = "";
                 saveState();
                 return;
             }
 
+            // Correct answer
             if (nimitenponi === state.nimini) {
-                state.message = `${WIN_RESPONSES[state.numGuesses - 1]}! nimi ni li ${state.nimini.toUpperCase()} :)`;
-                state.gameOver = true;
+                state.message =
+                    `${WIN_RESPONSES[state.numGuesses - 1]}! :) nimi ni li ${state.nimini.toUpperCase()}`;
 
+                state.gameOver = true;
                 state.listGuesses.push(nimitenponi);
                 state.clue = calculateClue(nimitenponi);
 
                 saveState();
-                console.log("PLAYER WINS");
+
+                // 🎉 Fire confetti!
+                if (confetti) confetti.start();
+
                 return;
             }
 
+            // Normal incorrect guess
             state.clue = calculateClue(nimitenponi);
+            state.listGuesses.push(nimitenponi);
             state.numGuesses++;
 
+            // Out of guesses
             if (state.numGuesses > MAX_GUESSES) {
-                state.message = `${WIN_RESPONSES[4]}! :( nimi ni li ${state.nimini.toUpperCase()}`;
+                state.message =
+                    `${WIN_RESPONSES[4]}! :( nimi ni li ${state.nimini.toUpperCase()}`;
+
                 state.gameOver = true;
-
-                state.listGuesses.push(nimitenponi);
-                state.clue = calculateClue(nimitenponi);
-
                 saveState();
-                console.log("PLAYER LOSES");
                 return;
             }
-
-            state.listGuesses.push(nimitenponi);
 
             state.message = "";
             state.guessInput = "";
             saveState();
-            console.log("Updated clue =", state.clue);
         }
 
+        /* ---------------------------------------
+           RESET GAME (same word)
+        --------------------------------------- */
+
         function restartGame() {
-            state.clue = ["_", "_", "_", "_"];
+            if (confetti) confetti.stop();
+            
+            state.clue = Array(NIMI_LEN).fill("_");
             state.numGuesses = 1;
             state.listGuesses = [];
             state.gameOver = false;
-
             state.message = "";
             state.guessInput = "";
-            saveState();
-            console.log("Restart game");
 
-            var input = document.getElementById("mainInput");
+            saveState();
+
+            // Refocus input
+            const input = document.getElementById("mainInput");
             input.focus();
             input.select();
         }
 
-        // -----------------------------
-        // STYLING
-        // -----------------------------
+        /* ---------------------------------------
+           COLOR CLASS FOR BOXES
+        --------------------------------------- */
+
         function clueClass(clue) {
             return {
-                correct: clue === '#',
-                present: clue === '?',
-                absent: clue === 'x',
+                correct: clue === "#",
+                present: clue === "?",
+                absent: clue === "x"
             };
         }
+
+        /* ---------------------------------------
+           EXPOSE TO TEMPLATE
+        --------------------------------------- */
 
         return {
             state,
             NIMI_LEN,
             MAX_GUESSES,
-            submitGuess,
-            restartGame,
             calculateClue,
-            clueClass
+            clueClass,
+            submitGuess,
+            restartGame
         };
     }
 }).mount("#app");
 
-var input = document.getElementById("mainInput");
-input.focus();
-input.select();
-
+// Focus input on load
+document.getElementById("mainInput").focus();
 </script>
+
+<canvas id="confetti-canvas"></canvas>
+<style>
+    #confetti-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        width: 100vw;
+        height: 100vh;
+        z-index: 9999;
+    }
+</style>
 </body>
 </html>
